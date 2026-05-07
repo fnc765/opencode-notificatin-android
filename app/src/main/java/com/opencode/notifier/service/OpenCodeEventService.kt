@@ -108,7 +108,7 @@ class OpenCodeEventService : LifecycleService() {
                 when (event.type) {
                     "session.idle" -> {
                         AppLog.i("SVC", "→ session.idle")
-                        handleSessionIdle(event, settings.webUiUrl.trimEnd('/'))
+                        handleSessionIdle(event, settings.webUiUrl.trimEnd('/'), settings.serverUrl.trimEnd('/'))
                     }
                     "session.error" -> {
                         AppLog.i("SVC", "→ session.error")
@@ -125,12 +125,12 @@ class OpenCodeEventService : LifecycleService() {
         }
     }
 
-    private fun handleSessionIdle(event: SseEvent, webUiUrl: String) {
+    private fun handleSessionIdle(event: SseEvent, webUiUrl: String, serverUrl: String) {
         try {
             val props = json.decodeFromString<SessionIdleProps>(
                 event.properties.toString()
             )
-            notificationHelper.showCompletionNotification(props.sessionID, webUiUrl)
+            notificationHelper.showCompletionNotification(props.sessionID, webUiUrl, serverUrl)
             AppLog.i("SVC", "  → completion notification sent for ${props.sessionID}")
         } catch (_: Exception) {}
     }

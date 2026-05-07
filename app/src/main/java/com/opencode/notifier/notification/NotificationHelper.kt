@@ -74,6 +74,22 @@ class NotificationHelper(private val context: Context) {
         ).forEach { manager.createNotificationChannel(it) }
     }
 
+    private fun resolveWebUrl(webUiUrl: String, serverUrl: String): String {
+        return webUiUrl.ifBlank { serverUrl }
+    }
+
+    private fun buildContentIntent(url: String, requestCode: Int): PendingIntent? {
+        return try {
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+            PendingIntent.getActivity(
+                context, requestCode, intent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+        } catch (_: Exception) {
+            null
+        }
+    }
+
     fun buildServiceNotification(): Notification {
         return NotificationCompat.Builder(context, CHANNEL_SERVICE)
             .setContentTitle("OpenCode Notifier")
@@ -93,17 +109,8 @@ class NotificationHelper(private val context: Context) {
         username: String,
         password: String
     ) {
-        val sessionUrl = if (webUiUrl.isNotBlank()) {
-            "$webUiUrl/session/$sessionId"
-        } else {
-            serverUrl
-        }
-
-        val contentIntent = Intent(Intent.ACTION_VIEW, Uri.parse(sessionUrl))
-        val contentPendingIntent = PendingIntent.getActivity(
-            context, sessionId.hashCode(), contentIntent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
+        val webUrl = resolveWebUrl(webUiUrl, serverUrl)
+        val contentPendingIntent = buildContentIntent(webUrl, sessionId.hashCode())
 
         val approveIntent = Intent(context, PermissionActionReceiver::class.java).apply {
             action = ACTION_APPROVE
@@ -133,38 +140,29 @@ class NotificationHelper(private val context: Context) {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        val notification = NotificationCompat.Builder(context, CHANNEL_PERMISSION)
+        val builder = NotificationCompat.Builder(context, CHANNEL_PERMISSION)
             .setContentTitle("Approval needed: $toolType")
             .setContentText(title)
             .setSmallIcon(android.R.drawable.ic_dialog_alert)
             .setAutoCancel(true)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setCategory(NotificationCompat.CATEGORY_STATUS)
-            .setContentIntent(contentPendingIntent)
             .addAction(android.R.drawable.ic_input_add, "Approve", approvePendingIntent)
             .addAction(android.R.drawable.ic_delete, "Deny", denyPendingIntent)
-            .build()
+
+        if (contentPendingIntent != null) {
+            builder.setContentIntent(contentPendingIntent)
+        }
 
         manager.notify(
             PERMISSION_NOTIFICATION_BASE_ID + permissionId.hashCode(),
-            notification
+            builder.build()
         )
     }
 
-    fun showCompletionNotification(sessionId: String, webUiUrl: String) {
-        val sessionUrl = if (webUiUrl.isNotBlank()) {
-            "$webUiUrl/session/$sessionId"
-        } else {
-            null
-        }
-
-        val contentIntent = if (sessionUrl != null) {
-            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(sessionUrl))
-            PendingIntent.getActivity(
-                context, sessionId.hashCode(), intent,
-                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-            )
-        } else null
+    fun showCompletionNotification(sessionId: String, webUiUrl: String, serverUrl: String) {
+        val webUrl = resolveWebUrl(webUiUrl, serverUrl)
+        val contentPendingIntent = buildContentIntent(webUrl, sessionId.hashCode())
 
         val builder = NotificationCompat.Builder(context, CHANNEL_COMPLETION)
             .setContentTitle("Task Completed")
@@ -173,8 +171,8 @@ class NotificationHelper(private val context: Context) {
             .setAutoCancel(true)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
 
-        if (contentIntent != null) {
-            builder.setContentIntent(contentIntent)
+        if (contentPendingIntent != null) {
+            builder.setContentIntent(contentPendingIntent)
         }
 
         manager.notify(COMPLETION_NOTIFICATION_ID, builder.build())
@@ -201,33 +199,8 @@ class NotificationHelper(private val context: Context) {
         username: String,
         password: String
     ) {
-        val sessionUrl = if (webUiUrl.isNotBlank()) {
-            "$webUiUrl/session/$sessionId"
-        } else {
-            serverUrl
-        }
-
-        val contentIntent = Intent(Intent.ACTION_VIEW, Uri.parse(sessionUrl))
-        val contentPendingIntent = PendingIntent.getActivity(
-            context, sessionId.hashCode(), contentIntent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
-
-        val approveIntent = Intent(context, PermissionActionReceiver::class.java).apply {
-            action = ACTION_APPROVE
-            putExtra("session_id", sessionId)
-            putExtra("permission_id", permissionId)
-            putExtra("server_url", serverUrl)
-            putExtra("username", username)
-            putExtra("password", password)
-            putExtra("notification_id", QUESTION_NOTIFICATION_BASE_ID + permissionId.hashCode())
-        }
-
-        // "OK" just acknowledges (sends approved) so the agent can continue
-        val approvePendingIntent = PendingIntent.getBroadcast(
-            context, "q_approve_$permissionId".hashCode(), approveIntent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
+        val webUrl = resolveWebUrl(webUiUrl, serverUrl)
+        val contentPendingIntent = buildContentIntent(webUrl, sessionId.hashCode())
 
         val notification = NotificationCompat.Builder(context, CHANNEL_QUESTION)
             .setContentTitle("OpenCode Question")
@@ -236,9 +209,11 @@ class NotificationHelper(private val context: Context) {
             .setSmallIcon(android.R.drawable.ic_dialog_info)
             .setAutoCancel(true)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
-            .setContentIntent(contentPendingIntent)
-            .addAction(android.R.drawable.ic_input_add, "Reply in UI", contentPendingIntent)
             .build()
+
+        if (contentPendingIntent != null) {
+            notification.contentIntent = contentPendingIntent
+        }
 
         manager.notify(
             QUESTION_NOTIFICATION_BASE_ID + permissionId.hashCode(),
