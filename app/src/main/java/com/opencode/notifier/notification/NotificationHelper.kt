@@ -16,9 +16,11 @@ class NotificationHelper(private val context: Context) {
         const val CHANNEL_PERMISSION = "opencode_permission"
         const val CHANNEL_COMPLETION = "opencode_completion"
         const val CHANNEL_ERROR = "opencode_error"
+        const val CHANNEL_QUESTION = "opencode_question"
         const val CHANNEL_SERVICE = "opencode_service"
 
         const val PERMISSION_NOTIFICATION_BASE_ID = 1000
+        const val QUESTION_NOTIFICATION_BASE_ID = 3000
         const val COMPLETION_NOTIFICATION_ID = 2000
         const val ERROR_NOTIFICATION_ID = 2001
 
@@ -54,6 +56,13 @@ class NotificationHelper(private val context: Context) {
                 NotificationManager.IMPORTANCE_HIGH
             ).apply {
                 description = "Notifications when OpenCode encounters an error"
+            },
+            NotificationChannel(
+                CHANNEL_QUESTION,
+                "Questions",
+                NotificationManager.IMPORTANCE_HIGH
+            ).apply {
+                description = "Notifications when OpenCode asks you a question"
             },
             NotificationChannel(
                 CHANNEL_SERVICE,
@@ -183,7 +192,65 @@ class NotificationHelper(private val context: Context) {
         manager.notify(ERROR_NOTIFICATION_ID, notification)
     }
 
+    fun showQuestionNotification(
+        sessionId: String,
+        permissionId: String,
+        title: String,
+        webUiUrl: String,
+        serverUrl: String,
+        username: String,
+        password: String
+    ) {
+        val sessionUrl = if (webUiUrl.isNotBlank()) {
+            "$webUiUrl/session/$sessionId"
+        } else {
+            serverUrl
+        }
+
+        val contentIntent = Intent(Intent.ACTION_VIEW, Uri.parse(sessionUrl))
+        val contentPendingIntent = PendingIntent.getActivity(
+            context, sessionId.hashCode(), contentIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        val approveIntent = Intent(context, PermissionActionReceiver::class.java).apply {
+            action = ACTION_APPROVE
+            putExtra("session_id", sessionId)
+            putExtra("permission_id", permissionId)
+            putExtra("server_url", serverUrl)
+            putExtra("username", username)
+            putExtra("password", password)
+            putExtra("notification_id", QUESTION_NOTIFICATION_BASE_ID + permissionId.hashCode())
+        }
+
+        // "OK" just acknowledges (sends approved) so the agent can continue
+        val approvePendingIntent = PendingIntent.getBroadcast(
+            context, "q_approve_$permissionId".hashCode(), approveIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        val notification = NotificationCompat.Builder(context, CHANNEL_QUESTION)
+            .setContentTitle("OpenCode Question")
+            .setContentText(title)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(title))
+            .setSmallIcon(android.R.drawable.ic_dialog_info)
+            .setAutoCancel(true)
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setContentIntent(contentPendingIntent)
+            .addAction(android.R.drawable.ic_input_add, "Reply in UI", contentPendingIntent)
+            .build()
+
+        manager.notify(
+            QUESTION_NOTIFICATION_BASE_ID + permissionId.hashCode(),
+            notification
+        )
+    }
+
     fun cancelPermissionNotification(permissionId: String) {
         manager.cancel(PERMISSION_NOTIFICATION_BASE_ID + permissionId.hashCode())
+    }
+
+    fun cancelQuestionNotification(permissionId: String) {
+        manager.cancel(QUESTION_NOTIFICATION_BASE_ID + permissionId.hashCode())
     }
 }

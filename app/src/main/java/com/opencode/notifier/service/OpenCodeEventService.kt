@@ -153,20 +153,38 @@ class OpenCodeEventService : LifecycleService() {
             val permission = json.decodeFromString<PermissionInfo>(
                 event.properties.toString()
             )
-            val toolType = permission.type
             val title = permission.title
+            val isQuestion = isQuestionPermission(permission.type)
 
-            notificationHelper.showPermissionNotification(
-                sessionId = permission.sessionID,
-                permissionId = permission.id,
-                title = title,
-                toolType = toolType,
-                webUiUrl = settings.webUiUrl.trimEnd('/'),
-                serverUrl = settings.serverUrl.trimEnd('/'),
-                username = settings.username,
-                password = settings.password
-            )
-            AppLog.i("SVC", "  → permission notification sent: $toolType - $title")
+            if (isQuestion) {
+                notificationHelper.showQuestionNotification(
+                    sessionId = permission.sessionID,
+                    permissionId = permission.id,
+                    title = title,
+                    webUiUrl = settings.webUiUrl.trimEnd('/'),
+                    serverUrl = settings.serverUrl.trimEnd('/'),
+                    username = settings.username,
+                    password = settings.password
+                )
+                AppLog.i("SVC", "  → question notification sent: $title")
+            } else {
+                notificationHelper.showPermissionNotification(
+                    sessionId = permission.sessionID,
+                    permissionId = permission.id,
+                    title = title,
+                    toolType = permission.type,
+                    webUiUrl = settings.webUiUrl.trimEnd('/'),
+                    serverUrl = settings.serverUrl.trimEnd('/'),
+                    username = settings.username,
+                    password = settings.password
+                )
+                AppLog.i("SVC", "  → permission notification sent: ${permission.type} - $title")
+            }
         } catch (_: Exception) {}
+    }
+
+    private fun isQuestionPermission(type: String): Boolean {
+        val toolTypes = setOf("bash", "edit", "webfetch", "doom_loop", "external_directory")
+        return type !in toolTypes
     }
 }

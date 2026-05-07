@@ -53,6 +53,18 @@ class MockOpenCodeHandler(BaseHTTPRequestHandler):
                 "metadata": {}
             }).encode())
             self.wfile.flush()
+            time.sleep(3)
+
+            # question (ask question notification)
+            self.wfile.write(sse_event("permission.updated", {
+                "id": "perm-002",
+                "type": "other",
+                "sessionID": "test-session-1",
+                "messageID": "msg-002",
+                "title": "Which HTTP library should I use for this project?",
+                "metadata": {}
+            }).encode())
+            self.wfile.flush()
             time.sleep(5)
 
             # keep connection alive, send idle every 30s
