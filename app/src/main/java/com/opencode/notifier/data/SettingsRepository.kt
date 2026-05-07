@@ -18,18 +18,22 @@ class SettingsRepository(private val context: Context) {
         private val KEY_USERNAME = stringPreferencesKey("username")
         private val KEY_PASSWORD = stringPreferencesKey("password")
         private val KEY_WEB_UI_URL = stringPreferencesKey("web_ui_url")
+        private val KEY_UI_TYPE = stringPreferencesKey("ui_type")
     }
 
     data class Settings(
         val serverUrl: String = "",
         val username: String = "opencode",
         val password: String = "",
-        val webUiUrl: String = ""
+        val webUiUrl: String = "",
+        val uiType: String = "portal"  // "portal" | "opencode"
     ) {
         val isConfigured: Boolean
             get() = serverUrl.isNotBlank()
         val useAuth: Boolean
             get() = password.isNotBlank()
+        val isPortal: Boolean
+            get() = uiType == "portal"
     }
 
     val settings: Flow<Settings> = context.dataStore.data.map { prefs ->
@@ -37,7 +41,8 @@ class SettingsRepository(private val context: Context) {
             serverUrl = prefs[KEY_SERVER_URL] ?: "",
             username = prefs[KEY_USERNAME] ?: "opencode",
             password = prefs[KEY_PASSWORD] ?: "",
-            webUiUrl = prefs[KEY_WEB_UI_URL] ?: ""
+            webUiUrl = prefs[KEY_WEB_UI_URL] ?: "",
+            uiType = prefs[KEY_UI_TYPE] ?: "portal"
         )
     }
 
@@ -63,6 +68,7 @@ class SettingsRepository(private val context: Context) {
             it[KEY_USERNAME] = settings.username
             it[KEY_PASSWORD] = settings.password
             it[KEY_WEB_UI_URL] = settings.webUiUrl
+            it[KEY_UI_TYPE] = settings.uiType
         }
     }
 }

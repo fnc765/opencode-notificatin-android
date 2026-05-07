@@ -74,8 +74,9 @@ class NotificationHelper(private val context: Context) {
         ).forEach { manager.createNotificationChannel(it) }
     }
 
-    private fun resolveWebUrl(webUiUrl: String, serverUrl: String): String {
-        return webUiUrl.ifBlank { serverUrl }
+    private fun buildSessionUrl(uiType: String, webUiUrl: String, serverUrl: String, sessionId: String): String {
+        val base = webUiUrl.ifBlank { serverUrl }
+        return if (uiType == "portal") "$base/session/$sessionId" else base
     }
 
     private fun buildContentIntent(url: String, requestCode: Int): PendingIntent? {
@@ -107,9 +108,10 @@ class NotificationHelper(private val context: Context) {
         webUiUrl: String,
         serverUrl: String,
         username: String,
-        password: String
+        password: String,
+        uiType: String
     ) {
-        val webUrl = resolveWebUrl(webUiUrl, serverUrl)
+        val webUrl = buildSessionUrl(uiType, webUiUrl, serverUrl, sessionId)
         val contentPendingIntent = buildContentIntent(webUrl, sessionId.hashCode())
 
         val approveIntent = Intent(context, PermissionActionReceiver::class.java).apply {
@@ -160,8 +162,8 @@ class NotificationHelper(private val context: Context) {
         )
     }
 
-    fun showCompletionNotification(sessionId: String, webUiUrl: String, serverUrl: String) {
-        val webUrl = resolveWebUrl(webUiUrl, serverUrl)
+    fun showCompletionNotification(sessionId: String, webUiUrl: String, serverUrl: String, uiType: String) {
+        val webUrl = buildSessionUrl(uiType, webUiUrl, serverUrl, sessionId)
         val contentPendingIntent = buildContentIntent(webUrl, sessionId.hashCode())
 
         val builder = NotificationCompat.Builder(context, CHANNEL_COMPLETION)
@@ -197,9 +199,10 @@ class NotificationHelper(private val context: Context) {
         webUiUrl: String,
         serverUrl: String,
         username: String,
-        password: String
+        password: String,
+        uiType: String
     ) {
-        val webUrl = resolveWebUrl(webUiUrl, serverUrl)
+        val webUrl = buildSessionUrl(uiType, webUiUrl, serverUrl, sessionId)
         val contentPendingIntent = buildContentIntent(webUrl, sessionId.hashCode())
 
         val notification = NotificationCompat.Builder(context, CHANNEL_QUESTION)

@@ -108,7 +108,7 @@ class OpenCodeEventService : LifecycleService() {
                 when (event.type) {
                     "session.idle" -> {
                         AppLog.i("SVC", "→ session.idle")
-                        handleSessionIdle(event, settings.webUiUrl.trimEnd('/'), settings.serverUrl.trimEnd('/'))
+                        handleSessionIdle(event, settings.webUiUrl.trimEnd('/'), settings.serverUrl.trimEnd('/'), settings.uiType)
                     }
                     "session.error" -> {
                         AppLog.i("SVC", "→ session.error")
@@ -125,12 +125,12 @@ class OpenCodeEventService : LifecycleService() {
         }
     }
 
-    private fun handleSessionIdle(event: SseEvent, webUiUrl: String, serverUrl: String) {
+    private fun handleSessionIdle(event: SseEvent, webUiUrl: String, serverUrl: String, uiType: String) {
         try {
             val props = json.decodeFromString<SessionIdleProps>(
                 event.properties.toString()
             )
-            notificationHelper.showCompletionNotification(props.sessionID, webUiUrl, serverUrl)
+            notificationHelper.showCompletionNotification(props.sessionID, webUiUrl, serverUrl, uiType)
             AppLog.i("SVC", "  → completion notification sent for ${props.sessionID}")
         } catch (_: Exception) {}
     }
@@ -164,7 +164,8 @@ class OpenCodeEventService : LifecycleService() {
                     webUiUrl = settings.webUiUrl.trimEnd('/'),
                     serverUrl = settings.serverUrl.trimEnd('/'),
                     username = settings.username,
-                    password = settings.password
+                    password = settings.password,
+                    uiType = settings.uiType
                 )
                 AppLog.i("SVC", "  → question notification sent: $title")
             } else {
@@ -176,7 +177,8 @@ class OpenCodeEventService : LifecycleService() {
                     webUiUrl = settings.webUiUrl.trimEnd('/'),
                     serverUrl = settings.serverUrl.trimEnd('/'),
                     username = settings.username,
-                    password = settings.password
+                    password = settings.password,
+                    uiType = settings.uiType
                 )
                 AppLog.i("SVC", "  → permission notification sent: ${permission.type} - $title")
             }
