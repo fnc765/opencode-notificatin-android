@@ -8,7 +8,11 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.opencode.notifier.data.SettingsRepository
@@ -34,22 +38,27 @@ class MainActivity : ComponentActivity() {
             var currentScreen by remember { mutableStateOf<Screen>(Screen.Home) }
 
             OpencodeNotifierTheme {
-                when (currentScreen) {
-                    Screen.Home -> {
-                        HomeScreen(
-                            onNavigateToSettings = { currentScreen = Screen.Settings },
-                            isServiceConnected = isServiceStarted,
-                            settingsRepository = settingsRepository
-                        )
-                    }
-                    Screen.Settings -> {
-                        SettingsScreen(
-                            onBack = {
-                                currentScreen = Screen.Home
-                                tryStartService()
-                            },
-                            settingsRepository = settingsRepository
-                        )
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = androidx.compose.material3.MaterialTheme.colorScheme.background
+                ) {
+                    when (currentScreen) {
+                        Screen.Home -> {
+                            HomeScreen(
+                                onNavigateToSettings = { currentScreen = Screen.Settings },
+                                isServiceConnected = isServiceStarted,
+                                settingsRepository = settingsRepository
+                            )
+                        }
+                        Screen.Settings -> {
+                            SettingsScreen(
+                                onBack = {
+                                    currentScreen = Screen.Home
+                                    tryStartService()
+                                },
+                                settingsRepository = settingsRepository
+                            )
+                        }
                     }
                 }
             }
