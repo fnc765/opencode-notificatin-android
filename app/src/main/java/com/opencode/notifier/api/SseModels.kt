@@ -13,7 +13,7 @@ data class SseEnvelope(
 data class SseEvent(
     val id: String? = null,
     val type: String,
-    val properties: JsonObject
+    val properties: JsonObject? = null
 )
 
 @Serializable

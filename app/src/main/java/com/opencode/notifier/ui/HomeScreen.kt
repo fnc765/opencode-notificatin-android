@@ -1,5 +1,6 @@
 package com.opencode.notifier.ui
 
+import android.content.Intent
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -8,10 +9,12 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.FileProvider
 import com.opencode.notifier.AppLog
 import kotlinx.coroutines.flow.first
 
@@ -26,6 +29,7 @@ fun HomeScreen(
     }
     val logs by AppLog.logs.collectAsState()
     val listState = rememberLazyListState()
+    val context = LocalContext.current
 
     LaunchedEffect(Unit) {
         settings = settingsRepository.settings.first()
@@ -37,10 +41,20 @@ fun HomeScreen(
         }
     }
 
+    fun exportLog() {
+        val file = AppLog.getCurrentLogFile() ?: return
+        val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
+        val intent = Intent(Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(Intent.EXTRA_STREAM, uri)
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        }
+        context.startActivity(Intent.createChooser(intent, "Export Log"))
+    }
+
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
-        // Status header
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -79,14 +93,16 @@ fun HomeScreen(
                     Text("Settings")
                 }
                 OutlinedButton(onClick = { AppLog.clear() }) {
-                    Text("Clear Log")
+                    Text("Clear")
+                }
+                OutlinedButton(onClick = { exportLog() }) {
+                    Text("Export")
                 }
             }
         }
 
         HorizontalDivider()
 
-        // Log section
         if (logs.isEmpty()) {
             Box(
                 modifier = Modifier.fillMaxSize(),

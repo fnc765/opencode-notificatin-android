@@ -84,13 +84,13 @@ class OpenCodeApiClient(
                                         val envelope = json.decodeFromString<SseEnvelope>(dataStr)
                                         AppLog.i("SSE", "Event: ${envelope.payload.type}")
                                         emit(envelope.payload)
-                                    } catch (e: Exception) {
+                                    } catch (e1: Exception) {
                                         try {
                                             val parsed = json.decodeFromString<SseEvent>(currentData!!)
                                             AppLog.i("SSE", "Event: ${parsed.type}")
                                             emit(parsed)
-                                        } catch (_: Exception) {
-                                            AppLog.w("SSE", "Unknown event format: ${currentData?.take(80)}")
+                                        } catch (e2: Exception) {
+                                            AppLog.w("SSE", "Parse failed [${e2::class.simpleName}]: ${currentData?.take(120)}")
                                         }
                                     }
                                     currentData = null

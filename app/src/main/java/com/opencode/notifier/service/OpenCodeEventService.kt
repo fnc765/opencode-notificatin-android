@@ -105,6 +105,7 @@ class OpenCodeEventService : LifecycleService() {
 
         try {
             client.eventStream().collect { event ->
+                if (event.properties == null) return@collect
                 when (event.type) {
                     "session.idle" -> {
                         AppLog.i("SVC", "→ session.idle")
@@ -128,7 +129,7 @@ class OpenCodeEventService : LifecycleService() {
     private fun handleSessionIdle(event: SseEvent, webUiUrl: String, serverUrl: String, uiType: String) {
         try {
             val props = json.decodeFromString<SessionIdleProps>(
-                event.properties.toString()
+                event.properties!!.toString()
             )
             notificationHelper.showCompletionNotification(props.sessionID, webUiUrl, serverUrl, uiType)
             AppLog.i("SVC", "  → completion notification sent for ${props.sessionID}")
@@ -137,7 +138,7 @@ class OpenCodeEventService : LifecycleService() {
 
     private fun handleSessionError(event: SseEvent) {
         try {
-            val sessionId = event.properties["sessionID"]?.let {
+            val sessionId = event.properties?.get("sessionID")?.let {
                 json.decodeFromString<String>(it.toString())
             } ?: ""
             notificationHelper.showErrorNotification(sessionId, null)
@@ -151,7 +152,7 @@ class OpenCodeEventService : LifecycleService() {
     ) {
         try {
             val permission = json.decodeFromString<PermissionInfo>(
-                event.properties.toString()
+                event.properties!!.toString()
             )
             val title = permission.title
             val isQuestion = isQuestionPermission(permission.type)
