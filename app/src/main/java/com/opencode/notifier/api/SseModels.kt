@@ -5,12 +5,13 @@ import kotlinx.serialization.json.JsonObject
 
 @Serializable
 data class SseEnvelope(
-    val directory: String,
+    val directory: String = "",
     val payload: SseEvent
 )
 
 @Serializable
 data class SseEvent(
+    val id: String? = null,
     val type: String,
     val properties: JsonObject
 )
