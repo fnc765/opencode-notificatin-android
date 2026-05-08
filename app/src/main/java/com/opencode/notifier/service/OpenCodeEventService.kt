@@ -151,9 +151,9 @@ class OpenCodeEventService : LifecycleService() {
         settings: SettingsRepository.Settings
     ) {
         try {
-            val permission = json.decodeFromString<PermissionInfo>(
-                event.properties!!.toString()
-            )
+            val raw = event.properties!!.toString()
+            AppLog.i("SVC", "  permission raw[0..200]: ${raw.take(200)}")
+            val permission = json.decodeFromString<PermissionInfo>(raw)
             val title = permission.title
             val isQuestion = isQuestionPermission(permission.type)
 
@@ -183,7 +183,9 @@ class OpenCodeEventService : LifecycleService() {
                 )
                 AppLog.i("SVC", "  → permission notification sent: ${permission.type} - $title")
             }
-        } catch (_: Exception) {}
+        } catch (e: Exception) {
+            AppLog.e("SVC", "Permission parse/handle error", e)
+        }
     }
 
     private fun isQuestionPermission(type: String): Boolean {
