@@ -21,7 +21,7 @@ def sse_event(event_type, props):
 
 class MockOpenCodeHandler(BaseHTTPRequestHandler):
     def do_GET(self):
-        if self.path == "/event":
+        if self.path == "/event" or self.path == "/global/event":
             self.send_response(200)
             self.send_header("Content-Type", "text/event-stream")
             self.send_header("Cache-Control", "no-cache")

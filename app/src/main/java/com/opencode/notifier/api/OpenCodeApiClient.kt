@@ -48,9 +48,9 @@ class OpenCodeApiClient(
 
         while (currentCoroutineContext().isActive) {
             try {
-                AppLog.i("SSE", "Connecting to $serverUrl/event...")
+                AppLog.i("SSE", "Connecting to $serverUrl/global/event...")
                 val request = Request.Builder()
-                    .url("$serverUrl/event")
+                    .url("$serverUrl/global/event")
                     .addAuth()
                     .header("Accept", "text/event-stream")
                     .build()
