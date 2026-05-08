@@ -115,8 +115,8 @@ class OpenCodeEventService : LifecycleService() {
                         AppLog.i("SVC", "→ session.error")
                         handleSessionError(event)
                     }
-                    "permission.updated" -> {
-                        AppLog.i("SVC", "→ permission.updated")
+                    "permission.updated", "permission.asked" -> {
+                        AppLog.i("SVC", "→ ${event.type}")
                         handlePermissionUpdated(event, settings)
                     }
                 }
