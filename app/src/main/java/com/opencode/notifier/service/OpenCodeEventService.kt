@@ -154,8 +154,9 @@ class OpenCodeEventService : LifecycleService() {
             val raw = event.properties!!.toString()
             AppLog.i("SVC", "  permission raw[0..200]: ${raw.take(200)}")
             val permission = json.decodeFromString<PermissionInfo>(raw)
-            val title = permission.title
-            val isQuestion = isQuestionPermission(permission.type)
+            val toolType = permission.permission
+            val title = buildPermissionTitle(permission)
+            val isQuestion = isQuestionPermission(toolType)
 
             if (isQuestion) {
                 notificationHelper.showQuestionNotification(
@@ -174,17 +175,26 @@ class OpenCodeEventService : LifecycleService() {
                     sessionId = permission.sessionID,
                     permissionId = permission.id,
                     title = title,
-                    toolType = permission.type,
+                    toolType = toolType,
                     webUiUrl = settings.webUiUrl.trimEnd('/'),
                     serverUrl = settings.serverUrl.trimEnd('/'),
                     username = settings.username,
                     password = settings.password,
                     uiType = settings.uiType
                 )
-                AppLog.i("SVC", "  → permission notification sent: ${permission.type} - $title")
+                AppLog.i("SVC", "  → permission notification sent: $toolType - $title")
             }
         } catch (e: Exception) {
             AppLog.e("SVC", "Permission parse/handle error", e)
+        }
+    }
+
+    private fun buildPermissionTitle(permission: PermissionInfo): String {
+        val patterns = permission.patterns?.joinToString(", ") ?: ""
+        return when {
+            patterns.isNotBlank() -> "${permission.permission}: $patterns"
+            permission.permission.isNotBlank() -> permission.permission
+            else -> "Unknown permission"
         }
     }
 
