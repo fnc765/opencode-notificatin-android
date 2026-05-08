@@ -9,6 +9,7 @@ import com.opencode.notifier.AppLog
 import com.opencode.notifier.MainActivity
 import com.opencode.notifier.api.OpenCodeApiClient
 import com.opencode.notifier.api.PermissionInfo
+import com.opencode.notifier.api.QuestionInfo
 import com.opencode.notifier.api.SessionIdleProps
 import com.opencode.notifier.api.SseEvent
 import com.opencode.notifier.data.SettingsRepository
@@ -115,9 +116,13 @@ class OpenCodeEventService : LifecycleService() {
                         AppLog.i("SVC", "→ session.error")
                         handleSessionError(event)
                     }
-                    "permission.updated", "permission.asked" -> {
-                        AppLog.i("SVC", "→ ${event.type}")
-                        handlePermissionUpdated(event, settings)
+                    "permission.asked" -> {
+                        AppLog.i("SVC", "→ permission.asked")
+                        handlePermissionAsked(event, settings)
+                    }
+                    "question.asked" -> {
+                        AppLog.i("SVC", "→ question.asked")
+                        handleQuestionAsked(event, settings)
                     }
                 }
             }
@@ -146,7 +151,7 @@ class OpenCodeEventService : LifecycleService() {
         } catch (_: Exception) {}
     }
 
-    private fun handlePermissionUpdated(
+    private fun handlePermissionAsked(
         event: SseEvent,
         settings: SettingsRepository.Settings
     ) {
@@ -154,38 +159,48 @@ class OpenCodeEventService : LifecycleService() {
             val raw = event.properties!!.toString()
             AppLog.i("SVC", "  permission raw[0..200]: ${raw.take(200)}")
             val permission = json.decodeFromString<PermissionInfo>(raw)
-            val toolType = permission.permission
             val title = buildPermissionTitle(permission)
-            val isQuestion = isQuestionPermission(toolType)
 
-            if (isQuestion) {
-                notificationHelper.showQuestionNotification(
-                    sessionId = permission.sessionID,
-                    permissionId = permission.id,
-                    title = title,
-                    webUiUrl = settings.webUiUrl.trimEnd('/'),
-                    serverUrl = settings.serverUrl.trimEnd('/'),
-                    username = settings.username,
-                    password = settings.password,
-                    uiType = settings.uiType
-                )
-                AppLog.i("SVC", "  → question notification sent: $title")
-            } else {
-                notificationHelper.showPermissionNotification(
-                    sessionId = permission.sessionID,
-                    permissionId = permission.id,
-                    title = title,
-                    toolType = toolType,
-                    webUiUrl = settings.webUiUrl.trimEnd('/'),
-                    serverUrl = settings.serverUrl.trimEnd('/'),
-                    username = settings.username,
-                    password = settings.password,
-                    uiType = settings.uiType
-                )
-                AppLog.i("SVC", "  → permission notification sent: $toolType - $title")
-            }
+            notificationHelper.showPermissionNotification(
+                sessionId = permission.sessionID,
+                permissionId = permission.id,
+                title = title,
+                toolType = permission.permission,
+                webUiUrl = settings.webUiUrl.trimEnd('/'),
+                serverUrl = settings.serverUrl.trimEnd('/'),
+                username = settings.username,
+                password = settings.password,
+                uiType = settings.uiType
+            )
+            AppLog.i("SVC", "  → permission notification sent: ${permission.permission} - $title")
         } catch (e: Exception) {
             AppLog.e("SVC", "Permission parse/handle error", e)
+        }
+    }
+
+    private fun handleQuestionAsked(
+        event: SseEvent,
+        settings: SettingsRepository.Settings
+    ) {
+        try {
+            val raw = event.properties!!.toString()
+            AppLog.i("SVC", "  question raw[0..200]: ${raw.take(200)}")
+            val question = json.decodeFromString<QuestionInfo>(raw)
+            val text = question.questions.firstOrNull()?.question ?: "OpenCode has a question"
+
+            notificationHelper.showQuestionNotification(
+                sessionId = question.sessionID,
+                permissionId = question.id,
+                title = text,
+                webUiUrl = settings.webUiUrl.trimEnd('/'),
+                serverUrl = settings.serverUrl.trimEnd('/'),
+                username = settings.username,
+                password = settings.password,
+                uiType = settings.uiType
+            )
+            AppLog.i("SVC", "  → question notification sent: $text")
+        } catch (e: Exception) {
+            AppLog.e("SVC", "Question parse/handle error", e)
         }
     }
 
@@ -198,8 +213,4 @@ class OpenCodeEventService : LifecycleService() {
         }
     }
 
-    private fun isQuestionPermission(type: String): Boolean {
-        val toolTypes = setOf("bash", "edit", "webfetch", "doom_loop", "external_directory")
-        return type !in toolTypes
-    }
 }

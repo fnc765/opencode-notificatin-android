@@ -43,26 +43,30 @@ class MockOpenCodeHandler(BaseHTTPRequestHandler):
             self.wfile.flush()
             time.sleep(2)
 
-            # permission.updated (approval notification)
-            self.wfile.write(sse_event("permission.updated", {
+            # permission.asked (approval notification - real event name and format)
+            self.wfile.write(sse_event("permission.asked", {
                 "id": "perm-001",
-                "type": "bash",
                 "sessionID": "test-session-1",
-                "messageID": "msg-001",
-                "title": "rm -rf /tmp/cache",
-                "metadata": {}
+                "permission": "bash",
+                "patterns": ["rm -rf /tmp/cache"],
+                "metadata": {},
+                "always": [],
             }).encode())
             self.wfile.flush()
             time.sleep(3)
 
-            # question (ask question notification)
-            self.wfile.write(sse_event("permission.updated", {
-                "id": "perm-002",
-                "type": "other",
+            # question.asked (real event name and format)
+            self.wfile.write(sse_event("question.asked", {
+                "id": "q-001",
                 "sessionID": "test-session-1",
-                "messageID": "msg-002",
-                "title": "Which HTTP library should I use for this project?",
-                "metadata": {}
+                "questions": [{
+                    "question": "Which HTTP library should I use for this project?",
+                    "header": "Library choice",
+                    "options": [
+                        {"label": "OkHttp", "description": "Square's HTTP client"},
+                        {"label": "Ktor", "description": "Kotlin-native HTTP client"}
+                    ]
+                }],
             }).encode())
             self.wfile.flush()
             time.sleep(5)

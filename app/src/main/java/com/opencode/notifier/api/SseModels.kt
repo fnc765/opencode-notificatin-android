@@ -42,3 +42,25 @@ data class PermissionRepliedProps(
 data class PermissionResponseBody(
     val response: String
 )
+
+@Serializable
+data class QuestionOption(
+    val label: String,
+    val description: String
+)
+
+@Serializable
+data class QuestionItem(
+    val question: String,
+    val header: String,
+    val options: List<QuestionOption>? = null,
+    val multiple: Boolean? = null,
+    val custom: Boolean? = null
+)
+
+@Serializable
+data class QuestionInfo(
+    val id: String,
+    val sessionID: String,
+    val questions: List<QuestionItem>
+)
