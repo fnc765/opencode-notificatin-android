@@ -9,3 +9,8 @@ local.properties
 Dockerfile
 .dockerignore
 .git/
+*.keystore
+keystore.properties
+mock_opencode_server.py
+LICENSE
+README.md

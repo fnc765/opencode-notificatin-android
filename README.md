@@ -37,15 +37,21 @@ The app connects to OpenCode's `/global/event` SSE endpoint and listens for:
 
 ## Build
 
+Builds use Docker — no local JDK or Android SDK required.
+
 ```bash
-# Build APK with Docker
 docker build -t opencode-notifier .
 docker run --rm --entrypoint cat opencode-notifier /opencode-notifier-release.apk > app-release.apk
 ```
 
-Requires Docker. JDK, Android SDK, and Gradle are bundled in the image.
+To build with your own signing key, place `opencode-notifier.keystore` and `keystore.properties` in the project root.
 
-To build with your own signing key, place `opencode-notifier.keystore` and `keystore.properties` in the project root (see `app/build.gradle.kts`).
+For local builds without Docker, generate the Gradle wrapper first:
+
+```bash
+gradle wrapper --gradle-version 8.11.1
+./gradlew assembleRelease
+```
 
 ## Install
 
