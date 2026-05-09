@@ -127,7 +127,8 @@ class OpenCodeApiClient(
                 .build()
 
             client.newCall(request).execute().use { resp ->
-                AppLog.i("API", "Permission response: HTTP ${resp.code}")
+                val body = resp.body?.string() ?: ""
+                AppLog.i("API", "Permission response: HTTP ${resp.code} body=${body.take(200)}")
                 resp.isSuccessful
             }
         } catch (e: Exception) {
