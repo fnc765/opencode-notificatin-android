@@ -1,6 +1,5 @@
 package com.opencode.notifier.notification
 
-import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -89,15 +88,6 @@ class NotificationHelper(private val context: Context) {
         } catch (_: Exception) {
             null
         }
-    }
-
-    fun buildServiceNotification(): Notification {
-        return NotificationCompat.Builder(context, CHANNEL_SERVICE)
-            .setContentTitle("OpenCode Notifier")
-            .setContentText("Connected and listening for events")
-            .setSmallIcon(android.R.drawable.ic_dialog_info)
-            .setOngoing(true)
-            .build()
     }
 
     fun showPermissionNotification(

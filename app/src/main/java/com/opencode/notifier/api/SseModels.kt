@@ -36,18 +36,6 @@ data class SessionIdleProps(
 )
 
 @Serializable
-data class PermissionRepliedProps(
-    val sessionID: String,
-    val permissionID: String,
-    val response: String
-)
-
-@Serializable
-data class PermissionResponseBody(
-    val response: String
-)
-
-@Serializable
 data class QuestionOption(
     val label: String,
     val description: String

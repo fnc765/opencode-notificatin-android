@@ -89,8 +89,6 @@ object AppLog {
         } catch (_: Exception) {}
     }
 
-    fun getCurrentLogFile(): File? = currentLogFile
-
     fun i(tag: String, message: String) = add(tag, message)
     fun e(tag: String, message: String, error: Throwable? = null) {
         val msg = if (error != null) "$message: ${error.message}" else message
