@@ -21,6 +21,7 @@ class PermissionActionReceiver : BroadcastReceiver() {
         val serverUrl = intent.getStringExtra("server_url") ?: return
         val username = intent.getStringExtra("username") ?: "opencode"
         val password = intent.getStringExtra("password") ?: return
+        val directory = intent.getStringExtra("directory") ?: ""
         val notificationId = intent.getIntExtra("notification_id", 0)
 
         val response = when (intent.action) {
@@ -34,7 +35,7 @@ class PermissionActionReceiver : BroadcastReceiver() {
         scope.launch {
             try {
                 val client = OpenCodeApiClient(serverUrl, username, password)
-                client.respondToPermission(sessionId, permissionId, response)
+                client.respondToPermission(sessionId, permissionId, response, directory)
 
                 val manager = context.getSystemService(NotificationManager::class.java)
                 manager.cancel(notificationId)

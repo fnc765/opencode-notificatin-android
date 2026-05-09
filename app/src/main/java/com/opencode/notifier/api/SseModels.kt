@@ -1,6 +1,7 @@
 package com.opencode.notifier.api
 
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 import kotlinx.serialization.json.JsonObject
 
 @Serializable
@@ -14,7 +15,10 @@ data class SseEvent(
     val id: String? = null,
     val type: String,
     val properties: JsonObject? = null
-)
+) {
+    @Transient
+    var directory: String = ""
+}
 
 @Serializable
 data class PermissionInfo(

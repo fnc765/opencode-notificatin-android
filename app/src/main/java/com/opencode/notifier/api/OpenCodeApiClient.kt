@@ -82,7 +82,8 @@ class OpenCodeApiClient(
                                     try {
                                         val dataStr = currentData!!
                                         val envelope = json.decodeFromString<SseEnvelope>(dataStr)
-                                        AppLog.i("SSE", "Event: ${envelope.payload.type}")
+                                        envelope.payload.directory = envelope.directory
+                                        AppLog.i("SSE", "Event: ${envelope.payload.type} dir=${envelope.directory.takeLast(30)}")
                                         emit(envelope.payload)
                                     } catch (e1: Exception) {
                                         try {
@@ -115,20 +116,23 @@ class OpenCodeApiClient(
     suspend fun respondToPermission(
         sessionId: String,
         permissionId: String,
-        response: String
+        response: String,
+        directory: String = ""
     ): Boolean = withContext(Dispatchers.IO) {
         try {
-            AppLog.i("API", "POST /session/$sessionId/permissions/$permissionId response=$response")
+            AppLog.i("API", "POST /session/$sessionId/permissions/$permissionId response=$response dir=$directory")
             val body = """{"response":"$response"}"""
-            val request = Request.Builder()
+            val req = Request.Builder()
                 .url("$serverUrl/session/$sessionId/permissions/$permissionId")
-                .addAuth()
+            if (directory.isNotBlank()) {
+                req.header("x-opencode-directory", directory)
+            }
+            req.addAuth()
                 .post(body.toRequestBody("application/json".toMediaType()))
-                .build()
 
-            client.newCall(request).execute().use { resp ->
-                val body = resp.body?.string() ?: ""
-                AppLog.i("API", "Permission response: HTTP ${resp.code} body=${body.take(200)}")
+            client.newCall(req.build()).execute().use { resp ->
+                val respBody = resp.body?.string() ?: ""
+                AppLog.i("API", "Permission response: HTTP ${resp.code} body=${respBody.take(200)}")
                 resp.isSuccessful
             }
         } catch (e: Exception) {

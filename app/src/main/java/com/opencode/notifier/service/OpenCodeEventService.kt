@@ -170,7 +170,8 @@ class OpenCodeEventService : LifecycleService() {
                 serverUrl = settings.serverUrl.trimEnd('/'),
                 username = settings.username,
                 password = settings.password,
-                uiType = settings.uiType
+                uiType = settings.uiType,
+                directory = event.directory
             )
             AppLog.i("SVC", "  → permission notification sent: ${permission.permission} - $title")
         } catch (e: Exception) {

@@ -109,7 +109,8 @@ class NotificationHelper(private val context: Context) {
         serverUrl: String,
         username: String,
         password: String,
-        uiType: String
+        uiType: String,
+        directory: String = ""
     ) {
         val webUrl = buildSessionUrl(uiType, webUiUrl, serverUrl, sessionId)
         val contentPendingIntent = buildContentIntent(webUrl, sessionId.hashCode())
@@ -122,6 +123,7 @@ class NotificationHelper(private val context: Context) {
             putExtra("username", username)
             putExtra("password", password)
             putExtra("notification_id", PERMISSION_NOTIFICATION_BASE_ID + permissionId.hashCode())
+            putExtra("directory", directory)
         }
         val approvePendingIntent = PendingIntent.getBroadcast(
             context, "approve_$permissionId".hashCode(), approveIntent,
@@ -136,6 +138,7 @@ class NotificationHelper(private val context: Context) {
             putExtra("username", username)
             putExtra("password", password)
             putExtra("notification_id", PERMISSION_NOTIFICATION_BASE_ID + permissionId.hashCode())
+            putExtra("directory", directory)
         }
         val denyPendingIntent = PendingIntent.getBroadcast(
             context, "deny_$permissionId".hashCode(), denyIntent,
