@@ -118,10 +118,10 @@ class OpenCodeApiClient(
         response: String
     ): Boolean = withContext(Dispatchers.IO) {
         try {
-            AppLog.i("API", "POST /session/$sessionId/permissions/$permissionId response=$response")
-            val body = """{"response":"$response"}"""
+            AppLog.i("API", "POST /permission/$permissionId/reply reply=$response")
+            val body = """{"reply":"$response"}"""
             val request = Request.Builder()
-                .url("$serverUrl/session/$sessionId/permissions/$permissionId")
+                .url("$serverUrl/permission/$permissionId/reply")
                 .addAuth()
                 .post(body.toRequestBody("application/json".toMediaType()))
                 .build()

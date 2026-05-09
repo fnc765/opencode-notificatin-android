@@ -24,8 +24,8 @@ class PermissionActionReceiver : BroadcastReceiver() {
         val notificationId = intent.getIntExtra("notification_id", 0)
 
         val response = when (intent.action) {
-            NotificationHelper.ACTION_APPROVE -> "approved"
-            NotificationHelper.ACTION_DENY -> "denied"
+            NotificationHelper.ACTION_APPROVE -> "once"
+            NotificationHelper.ACTION_DENY -> "reject"
             else -> return
         }
 

@@ -1,6 +1,7 @@
 package com.opencode.notifier.ui
 
-import android.content.Intent
+import android.content.ClipData
+import android.content.ClipboardManager
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -14,7 +15,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.FileProvider
+import androidx.core.content.getSystemService
 import com.opencode.notifier.AppLog
 import kotlinx.coroutines.flow.first
 
@@ -42,14 +43,9 @@ fun HomeScreen(
     }
 
     fun exportLog() {
-        val file = AppLog.getCurrentLogFile() ?: return
-        val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
-        val intent = Intent(Intent.ACTION_SEND).apply {
-            type = "text/plain"
-            putExtra(Intent.EXTRA_STREAM, uri)
-            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        }
-        context.startActivity(Intent.createChooser(intent, "Export Log"))
+        val text = AppLog.logs.value.joinToString("\n")
+        val clipboard = context.getSystemService<ClipboardManager>()
+        clipboard?.setPrimaryClip(ClipData.newPlainText("OpenCode Notifier Log", text))
     }
 
     Column(
@@ -96,7 +92,7 @@ fun HomeScreen(
                     Text("Clear")
                 }
                 OutlinedButton(onClick = { exportLog() }) {
-                    Text("Export")
+                    Text("Copy Log")
                 }
             }
         }
