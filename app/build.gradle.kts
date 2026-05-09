@@ -9,8 +9,9 @@ plugins {
 }
 
 val keystorePropertiesFile = rootProject.file("keystore.properties")
+val hasKeystore = keystorePropertiesFile.exists()
 val keystoreProperties = Properties().apply {
-    if (keystorePropertiesFile.exists()) {
+    if (hasKeystore) {
         load(FileInputStream(keystorePropertiesFile))
     }
 }
@@ -21,7 +22,7 @@ android {
 
     signingConfigs {
         create("release") {
-            if (keystorePropertiesFile.exists()) {
+            if (hasKeystore) {
                 storeFile = rootProject.file(keystoreProperties["storeFile"] as String)
                 storePassword = keystoreProperties["storePassword"] as String
                 keyAlias = keystoreProperties["keyAlias"] as String
@@ -41,7 +42,7 @@ android {
     buildTypes {
         release {
             isMinifyEnabled = true
-            signingConfig = signingConfigs.getByName("release")
+            signingConfig = if (hasKeystore) signingConfigs.getByName("release") else signingConfigs.getByName("debug")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"

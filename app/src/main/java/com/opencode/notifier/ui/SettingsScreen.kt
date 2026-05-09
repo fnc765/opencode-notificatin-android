@@ -133,7 +133,7 @@ fun SettingsScreen(
                     readOnly = true,
                     label = { Text("Web UI Type") },
                     trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = dropdownExpanded) },
-                    modifier = Modifier.fillMaxWidth().menuAnchor(),
+                    modifier = Modifier.fillMaxWidth().menuAnchor(MenuAnchorType.PrimaryNotEditable),
                     supportingText = {
                         Text("How the session link is constructed")
                     }
