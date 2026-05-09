@@ -91,6 +91,16 @@ bunx openportal
 
 The app will connect automatically via foreground service.
 
+## Releases
+
+Every push to `main` triggers GitHub Actions, which:
+
+1. Auto-bumps the version (`versionCode` incremented, `versionName` set to `YYYY.MM.DD.{code}`)
+2. Builds the APK via Docker
+3. Creates a **draft release** with the APK attached
+
+To publish a release, go to the [Releases](../../releases) page, review the draft, and click **Publish**. The latest APK is always available under **Assets**.
+
 ### 3. Test with Mock Server
 
 A mock server is included for testing notifications without a real OpenCode instance:
